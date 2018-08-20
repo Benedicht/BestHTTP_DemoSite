@@ -10,4 +10,8 @@
     <PackageReference Include="System.Reactive.Linq" Version="4.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\images\Demo\" />
+  </ItemGroup>
+
 </Project>
