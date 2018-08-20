@@ -1,4 +1,4 @@
-﻿https://raw.githubusercontent.com/aspnet/SignalR/release/2.2/samples/SignalRSamples/ObservableExtensions.cs
+﻿//https://raw.githubusercontent.com/aspnet/SignalR/release/2.2/samples/SignalRSamples/ObservableExtensions.cs
 
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
