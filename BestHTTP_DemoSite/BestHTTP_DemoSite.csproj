@@ -2,10 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <UserSecretsId>f4037f8b-296e-46b9-a038-f8132a344b0f</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="System.Reactive.Linq" Version="4.1.0" />
   </ItemGroup>
 
 </Project>
