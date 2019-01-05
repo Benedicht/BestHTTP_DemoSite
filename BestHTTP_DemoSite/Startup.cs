@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -12,11 +15,17 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Primitives;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 
 namespace BestHTTP_DemoSite
 {
     public class Startup
     {
+        private readonly SymmetricSecurityKey SecurityKey = new SymmetricSecurityKey(Guid.NewGuid().ToByteArray());
+        private readonly JwtSecurityTokenHandler JwtTokenHandler = new JwtSecurityTokenHandler();
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -33,6 +42,60 @@ namespace BestHTTP_DemoSite
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(JwtBearerDefaults.AuthenticationScheme, policy =>
+                {
+                    policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
+                    policy.RequireClaim(ClaimTypes.NameIdentifier);
+                });
+            });
+
+            services.AddAuthentication(options =>
+                {
+                    // Identity made Cookie authentication the default.
+                    // However, we want JWT Bearer Auth to be the default.
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                        // Configure JWT Bearer Auth to expect our security key
+                        options.TokenValidationParameters =
+                        new TokenValidationParameters
+                        {
+                            LifetimeValidator = (before, expires, token, param) =>
+                            {
+                                return expires > DateTime.UtcNow;
+                            },
+                            ValidateAudience = false,
+                            ValidateIssuer = false,
+                            ValidateActor = false,
+                            ValidateLifetime = true,
+                            IssuerSigningKey = SecurityKey
+                        };
+
+                        // We have to hook the OnMessageReceived event in order to
+                        // allow the JWT authentication handler to read the access
+                        // token from the query string when a WebSocket or 
+                        // Server-Sent Events request comes in.
+                        options.Events = new JwtBearerEvents {
+                                OnMessageReceived = context =>
+                                {
+                                    var accessToken = context.Request.Query["access_token"];
+
+                                    // If the request is for our hub...
+                                    var path = context.HttpContext.Request.Path;
+                                    if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/HubWithAuthorization")))
+                                    {
+                                            // Read the token out of the query string
+                                            context.Token = accessToken;
+                                    }
+                                    return Task.CompletedTask;
+                                }
+                            };
+                });
 
             services.AddSignalR();
         }
@@ -56,6 +119,7 @@ namespace BestHTTP_DemoSite
             app.UseSignalR(routes =>
             {
                 routes.MapHub<Hubs.TestHub>("/TestHub");
+                routes.MapHub<Hubs.HubWithAuthorization>("/HubWithAuthorization");
             });
 
             app.UseDefaultFiles();
@@ -76,6 +140,55 @@ namespace BestHTTP_DemoSite
             option.DefaultContentType = "application/octet-stream";
             option.ServeUnknownFileTypes = true;
             app.UseStaticFiles(option);
+
+            app.Run(async (context) =>
+            {
+                if (context.Request.Path.StartsWithSegments("/generateJwtToken"))
+                {
+                    await context.Response.WriteAsync(GenerateJwtToken());
+                    return;
+                }
+                else if (context.Request.Path.StartsWithSegments("/redirect"))
+                {
+                    await context.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
+                        url = $"{context.Request.Scheme}://{context.Request.Host}/HubWithAuthorization",
+                        accessToken = GenerateJwtToken()
+                    }));
+                }
+                else if (context.Request.Path.StartsWithSegments("/forever_redirect"))
+                {
+                    await context.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
+                        url = $"{context.Request.Scheme}://{context.Request.Host}/forever_redirect"
+                    }));
+                }
+                else if (context.Request.Path.StartsWithSegments("/redirect_sample"))
+                {
+                    // Endpoint for RedirectSample. It will search for the 'x-redirect-count' header and if found
+                    //  it will try to convert its value to an int. If its value is greater or equal to 5, the client
+                    //  is will be redirected to the regular endpoint (/redirect) to get a jwt token and proceed 
+                    //  forward to the /HubWithAuthorization hub.
+
+                    string path = "redirect_sample";
+                    var redirectCount = context.Request.Headers["X-Redirect-Count"];
+                    if (redirectCount != StringValues.Empty && int.TryParse(redirectCount[0], out int count) && count >= 5)
+                        path = "redirect";
+
+                    await context.Response.WriteAsync(JsonConvert.SerializeObject(new
+                    {
+                        url = $"{context.Request.Scheme}://{context.Request.Host}/{path}"
+                    }));
+                }
+            });
+        }
+
+        private string GenerateJwtToken()
+        {
+            var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "besthttp_demo_user") };
+            var credentials = new SigningCredentials(SecurityKey, SecurityAlgorithms.HmacSha256);
+            var token = new JwtSecurityToken("BestHTTP Demo Site", "BestHTTP Demo Site Users", claims, expires: DateTime.Now.AddSeconds(5), signingCredentials: credentials);
+            return JwtTokenHandler.WriteToken(token);
         }
     }
 }
