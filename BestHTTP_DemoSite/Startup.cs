@@ -36,6 +36,17 @@ namespace BestHTTP_DemoSite
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(o =>
+            {
+                o.AddPolicy("Everything", p =>
+                {
+                    p.AllowAnyHeader()
+                     .AllowAnyMethod()
+                     .AllowAnyOrigin()
+                     .AllowCredentials();
+                });
+            });
+
             services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
@@ -112,6 +123,8 @@ namespace BestHTTP_DemoSite
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
+
+            app.UseCors("Everything");
 
             app.UseHttpsRedirection();
             app.UseCookiePolicy();
