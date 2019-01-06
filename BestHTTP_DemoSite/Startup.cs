@@ -123,7 +123,8 @@ namespace BestHTTP_DemoSite
                 builder.WithOrigins("https://localhost:44364", "https://besthttpdemosite.azurewebsites.net")
                        .AllowAnyMethod()
                        .AllowAnyHeader()
-                       .AllowCredentials();
+                       .AllowCredentials()
+                       .WithHeaders("Authorization");
             });
 
             app.UseHttpsRedirection();
