@@ -23,7 +23,7 @@ namespace BestHTTP_DemoSite
 {
     public class Startup
     {
-        private readonly SymmetricSecurityKey SecurityKey = new SymmetricSecurityKey(Guid.NewGuid().ToByteArray());
+        private readonly SymmetricSecurityKey SecurityKey = new SymmetricSecurityKey(System.Text.Encoding.ASCII.GetBytes("Super secret security key!"));
         private readonly JwtSecurityTokenHandler JwtTokenHandler = new JwtSecurityTokenHandler();
 
         public Startup(IConfiguration configuration)
@@ -36,16 +36,7 @@ namespace BestHTTP_DemoSite
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors(o =>
-            {
-                o.AddPolicy("Everything", p =>
-                {
-                    p.AllowAnyHeader()
-                     .AllowAnyMethod()
-                     .AllowAnyOrigin()
-                     .AllowCredentials();
-                });
-            });
+            services.AddCors();
 
             services.Configure<CookiePolicyOptions>(options =>
             {
@@ -83,8 +74,10 @@ namespace BestHTTP_DemoSite
                             ValidateAudience = false,
                             ValidateIssuer = false,
                             ValidateActor = false,
-                            ValidateLifetime = true,
-                            IssuerSigningKey = SecurityKey
+                            ValidateLifetime = false,
+                            ValidateIssuerSigningKey = false,
+                            ValidateTokenReplay = false,
+                            IssuerSigningKey = SecurityKey,
                         };
 
                         // We have to hook the OnMessageReceived event in order to
@@ -94,14 +87,12 @@ namespace BestHTTP_DemoSite
                         options.Events = new JwtBearerEvents {
                                 OnMessageReceived = context =>
                                 {
-                                    var accessToken = context.Request.Query["access_token"];
-
+                                    string accessToken = context.Request.Query["access_token"].ToString();
+                                    
                                     // If the request is for our hub...
                                     var path = context.HttpContext.Request.Path;
                                     if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/HubWithAuthorization")))
                                     {
-                                            System.Diagnostics.Debug.WriteLine("accessToken: '" + accessToken + "'");
-
                                             // Read the token out of the query string
                                             context.Token = accessToken;
                                     }
@@ -126,7 +117,14 @@ namespace BestHTTP_DemoSite
                 app.UseHsts();
             }
 
-            app.UseCors("Everything");
+            //app.UseCors("Everything");
+            app.UseCors(builder =>
+            {
+                builder.WithOrigins("https://localhost:44364", "https://besthttpdemosite.azurewebsites.net")
+                       .AllowAnyMethod()
+                       .AllowAnyHeader()
+                       .AllowCredentials();
+            });
 
             app.UseHttpsRedirection();
             app.UseCookiePolicy();
@@ -202,7 +200,7 @@ namespace BestHTTP_DemoSite
         {
             var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "besthttp_demo_user") };
             var credentials = new SigningCredentials(SecurityKey, SecurityAlgorithms.HmacSha256);
-            var token = new JwtSecurityToken("BestHTTP Demo Site", "BestHTTP Demo Site Users", claims, expires: DateTime.Now.AddMinutes(15), signingCredentials: credentials);
+            var token = new JwtSecurityToken("BestHTTP Demo Site", "BestHTTP Demo Site Users", claims, expires: DateTime.Now.AddHours(15), signingCredentials: credentials);
             return JwtTokenHandler.WriteToken(token);
         }
     }
