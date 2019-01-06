@@ -100,6 +100,8 @@ namespace BestHTTP_DemoSite
                                     var path = context.HttpContext.Request.Path;
                                     if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/HubWithAuthorization")))
                                     {
+                                            System.Diagnostics.Debug.WriteLine("accessToken: '" + accessToken + "'");
+
                                             // Read the token out of the query string
                                             context.Token = accessToken;
                                     }
@@ -200,7 +202,7 @@ namespace BestHTTP_DemoSite
         {
             var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "besthttp_demo_user") };
             var credentials = new SigningCredentials(SecurityKey, SecurityAlgorithms.HmacSha256);
-            var token = new JwtSecurityToken("BestHTTP Demo Site", "BestHTTP Demo Site Users", claims, expires: DateTime.Now.AddSeconds(5), signingCredentials: credentials);
+            var token = new JwtSecurityToken("BestHTTP Demo Site", "BestHTTP Demo Site Users", claims, expires: DateTime.Now.AddSeconds(15), signingCredentials: credentials);
             return JwtTokenHandler.WriteToken(token);
         }
     }
