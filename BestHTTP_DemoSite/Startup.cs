@@ -202,7 +202,7 @@ namespace BestHTTP_DemoSite
         {
             var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "besthttp_demo_user") };
             var credentials = new SigningCredentials(SecurityKey, SecurityAlgorithms.HmacSha256);
-            var token = new JwtSecurityToken("BestHTTP Demo Site", "BestHTTP Demo Site Users", claims, expires: DateTime.Now.AddSeconds(15), signingCredentials: credentials);
+            var token = new JwtSecurityToken("BestHTTP Demo Site", "BestHTTP Demo Site Users", claims, expires: DateTime.Now.AddMinutes(15), signingCredentials: credentials);
             return JwtTokenHandler.WriteToken(token);
         }
     }
