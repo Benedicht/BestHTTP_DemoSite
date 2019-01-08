@@ -1,25 +1,125 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity WebGL Player | Best HTTP Demo</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-    <script src="TemplateData/UnityProgress.js"></script>
-    <script src="Build/UnityLoader.js"></script>
-    <script>
-      var gameInstance = UnityLoader.instantiate("gameContainer", "Build/wwwroot.json", {onProgress: UnityProgress});
-    </script>
-  </head>
-  <body>
-    <div class="webgl-content">
-      <div id="gameContainer" style="width: 960px; height: 600px"></div>
-      <div class="footer">
-        <div class="webgl-logo"></div>
-        <div class="fullscreen" onclick="gameInstance.SetFullscreen(1)"></div>
-        <div class="title">Best HTTP Demo</div>
-      </div>
-    </div>
-  </body>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+		<title>Best HTTP WebGL Demo</title>
+
+		<link rel="shortcut icon" href="TemplateData/favicon.ico">
+		<link rel="stylesheet" type="text/css" href="TemplateData/style.css">
+		<link rel="stylesheet" type="text/css" href="TemplateData/github-embed.css">
+		<link rel="stylesheet" type="text/css" href="TemplateData/main.css">
+
+		<script src="TemplateData/UnityProgress.js"></script>
+		<script src="Build/UnityLoader.js"></script>
+		<script>
+			var gameInstance = UnityLoader.instantiate("gameContainer", "Build/wwwroot.json", {onProgress: UnityProgress});
+		</script>
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.23.0/polyfill.min.js"></script>
+		<script src="TemplateData/github-embed.min.js"></script>
+	</head>
+	<body>
+		<div class="flex-container" >
+			<div class="main-header" >
+				<h1 style="text-align: center" >Best HTTP WebGL Demo</h1>
+				<p class="introduction" >This is the demo page of the <a href="http://u3d.as/5sb" target="_blank" >Best HTTP</a> Unity3D plugin. Both the server and client demo code is available from theirs git repository.</p>
+			</div>
+			
+			<div class="webgl-content" >
+				<div id="gameContainer" class="gameContainer" ></div>
+					<div class="footer">
+					<div class="webgl-logo"></div>
+					<div class="fullscreen" onclick="gameInstance.SetFullscreen(1)"></div>
+				</div>
+			</div>
+
+			<div class="flex-sub-container" >
+			
+				<div class="content-root" >
+					<h2 class="content-header" ><a href="https://github.com/Benedicht/BestHTTP_DemoSite" target="_blank" rel="noopener noreferrer" >Server Repository</a></h2>
+					<div id="serverContent" ></div>
+				</div>		
+
+				<div class="content-root" >
+					<h2 class="content-header" ><a href="https://github.com/Benedicht/BestHTTP_Examples" target="_blank" rel="noopener noreferrer" >Client Repository</a></h2>
+					<div id="clientContent" ></div>
+				</div>
+			</div>
+		</div>
+	</body>
+  
+	<script>
+		githubEmbed('#serverContent', {
+			"owner": "Benedicht",
+			"repo": "BestHTTP_DemoSite",
+			"ref": "master",
+			"embed": [
+				{
+					"type": "cs",
+					"label": "Startup",
+					"path": "BestHTTP_DemoSite/Startup.cs"
+				},
+				{
+					"type": "cs",
+					"label": "Hub With Authorization",
+					"path": "BestHTTP_DemoSite/Hubs/HubWithAuthorization.cs"
+				},
+				{
+					"type": "cs",
+					"label": "Test Hub",
+					"path": "BestHTTP_DemoSite/Hubs/TestHub.cs"
+				}
+			]
+		});
+		
+		githubEmbed('#clientContent', {
+			"owner": "Benedicht",
+			"repo": "BestHTTP_Examples",
+			"ref": "master",
+			"embed": [
+				{
+					"type": "cs",
+					"label": "Texture Download Sample",
+					"path": "HTTP/TextureDownloadSample.cs"
+				},
+				{
+					"type": "cs",
+					"label": "Asset Download Sample",
+					"path": "HTTP/AssetBundleSample.cs"
+				},
+				{
+					"type": "cs",
+					"label": "Websocket Echo Sample",
+					"path": "Websocket/WebSocketSample.cs"
+				},
+				{
+					"type": "cs",
+					"label": "Socket.IO Chat Sample",
+					"path": "SocketIO/SocketIOChatSample.cs"
+				},
+				{
+					"type": "cs",
+					"label": "SignalR Core Test Hub",
+					"path": "SignalRCore/TestHubExample.cs"
+				},
+				{
+					"type": "cs",
+					"label": "SignalR Core Hub With Authorization",
+					"path": "SignalRCore/HubWithAuthorization.cs"
+				},
+				{
+					"type": "cs",
+					"label": "SignalR Core Hub With Pre-authorization",
+					"path": "SignalRCore/HubWithPreAuthorizationSample.cs"
+				},
+				{
+					"type": "cs",
+					"label": "SignalR Core Hub Redirect Sample",
+					"path": "SignalRCore/RedirectSample.cs"
+				}
+			]
+		});
+	</script>
 </html>

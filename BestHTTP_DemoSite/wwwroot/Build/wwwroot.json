@@ -1,6 +1,6 @@
 {
 "companyName": "BestHTTP",
-"productName": "Best HTTP Demo",
+"productName": "Best HTTP WebGL Demo",
 "dataUrl": "wwwroot.data.unityweb",
 "wasmCodeUrl": "wwwroot.wasm.code.unityweb",
 "wasmFrameworkUrl": "wwwroot.wasm.framework.unityweb",
@@ -8,5 +8,6 @@
 "graphicsAPI": ["WebGL 2.0", "WebGL 1.0"],
 "webglContextAttributes": {"preserveDrawingBuffer": false},
 "splashScreenStyle": "Dark",
-"backgroundColor": "#231F20"
+"backgroundColor": "#231F20",
+"cacheControl": {"default": "must-revalidate"}
 }
