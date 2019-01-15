@@ -191,7 +191,8 @@ namespace BestHTTP_DemoSite
 
                     await context.Response.WriteAsync(JsonConvert.SerializeObject(new
                     {
-                        url = $"{context.Request.Scheme}://{context.Request.Host}/{path}"
+                        //url = $"{context.Request.Scheme}://{context.Request.Host}/{path}"
+                        url = $"/{path}"
                     }));
                 }
             });
