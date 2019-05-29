@@ -110,6 +110,11 @@ namespace Hubs
                              .AsChannelReader(new System.Threading.CancellationToken());
         }
 
+        public int? NullableTest(int? value)
+        {
+            return value;
+        }
+
         //https://github.com/aspnet/SignalR/blob/release/2.2/samples/SignalRSamples/Hubs/Streaming.cs
 
 #pragma warning disable HAA0302 // Display class allocation to capture closure
