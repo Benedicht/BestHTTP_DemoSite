@@ -134,6 +134,7 @@ namespace BestHTTP_DemoSite
             {
                 routes.MapHub<Hubs.TestHub>("/TestHub");
                 routes.MapHub<Hubs.HubWithAuthorization>("/HubWithAuthorization");
+                routes.MapHub<Hubs.UploadHub>("/uploading");
             });
 
             app.UseDefaultFiles();
@@ -194,6 +195,22 @@ namespace BestHTTP_DemoSite
                         //url = $"{context.Request.Scheme}://{context.Request.Host}/{path}"
                         url = $"/{path}"
                     }));
+                } else if (context.Request.Path.ToString().Equals("/sse"))
+                {
+                    // https://stackoverflow.com/questions/36227565/aspnet-core-server-sent-events-response-flush
+
+                    var response = context.Response;
+                    response.Headers.Add("Content-Type", "text/event-stream");
+
+                    for (var i = 0; true; ++i)
+                    {
+                        await response.WriteAsync("event: datetime\r");
+                        await response.WriteAsync($"data: {{\"eventid\": {i}, \"datetime\": \"{DateTime.Now}\"}}\r\r");
+                        await response.WriteAsync("data: Message from the server without an event.\r\r");
+
+                        await response.Body.FlushAsync();
+                        await Task.Delay(5 * 1000);
+                    }
                 }
             });
         }
