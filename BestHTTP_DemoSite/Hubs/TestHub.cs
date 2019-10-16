@@ -152,9 +152,9 @@ namespace Hubs
                     await Task.Delay(delay);
                 }
 
-                channel.Writer.TryComplete();
-
                 await Clients.Client(Context.ConnectionId).SendAsync("Person", new Person { Name = "Person 000", Age = 0 });
+
+                channel.Writer.TryComplete();
             });
 
             return channel.Reader;

@@ -16,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 
@@ -36,6 +37,8 @@ namespace BestHTTP_DemoSite
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddResponseCompression();
+
             services.AddCors();
 
             services.Configure<CookiePolicyOptions>(options =>
@@ -101,12 +104,17 @@ namespace BestHTTP_DemoSite
                             };
                 });
 
-            services.AddSignalR();
+            services.AddSignalR(options =>
+            {
+                //options.KeepAliveInterval = TimeSpan.FromSeconds(1);
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseResponseCompression();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -130,12 +138,23 @@ namespace BestHTTP_DemoSite
             app.UseHttpsRedirection();
             app.UseCookiePolicy();
 
-            app.UseSignalR(routes =>
+            app.UseRouting();
+
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
             {
-                routes.MapHub<Hubs.TestHub>("/TestHub");
-                routes.MapHub<Hubs.HubWithAuthorization>("/HubWithAuthorization");
-                routes.MapHub<Hubs.UploadHub>("/uploading");
+                endpoints.MapHub<Hubs.TestHub>("/TestHub");
+                endpoints.MapHub<Hubs.HubWithAuthorization>("/HubWithAuthorization");
+                endpoints.MapHub<Hubs.UploadHub>("/uploading");
             });
+
+            //app.UseSignalR(routes =>
+            //{
+            //    routes.MapHub<Hubs.TestHub>("/TestHub");
+            //    routes.MapHub<Hubs.HubWithAuthorization>("/HubWithAuthorization");
+            //    routes.MapHub<Hubs.UploadHub>("/uploading");
+            //});
 
             app.UseDefaultFiles();
 
@@ -154,6 +173,14 @@ namespace BestHTTP_DemoSite
 
             option.DefaultContentType = "application/octet-stream";
             option.ServeUnknownFileTypes = true;
+            option.OnPrepareResponse += content =>
+            {
+                if (content.File.Name.EndsWith(".gz"))
+                {
+                    content.Context.Response.Headers["Content-Encoding"] = "gzip";
+                }
+            };
+
             app.UseStaticFiles(option);
 
             app.Run(async (context) =>
