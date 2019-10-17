@@ -1,7 +1,7 @@
 {
 "companyName": "BestHTTP",
 "productName": "Best HTTP WebGL Demo",
-"productVersion": "1.0",
+"productVersion": "2.0",
 "dataUrl": "wwwroot.data.unityweb",
 "wasmCodeUrl": "wwwroot.wasm.code.unityweb",
 "wasmFrameworkUrl": "wwwroot.wasm.framework.unityweb",
@@ -11,5 +11,5 @@
 "backgroundColor": "#231F20",
 "developmentBuild": false,
 "multithreading": false,
-"unityVersion": "2019.1.4f1"
+"unityVersion": "2019.3.0b7"
 }
