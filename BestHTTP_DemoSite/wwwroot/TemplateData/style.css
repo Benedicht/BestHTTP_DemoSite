@@ -10,8 +10,9 @@
 
 .gameContainer {
 	#background-color: blue; 
-	width: 100%; 
-	height: 600px;
+	width: auto; 
+	min-height: 400px;
+	height: 85vh;
 }
 
 .webgl-content .logo, .progress {position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%);}
