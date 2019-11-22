@@ -107,7 +107,7 @@ namespace BestHTTP_DemoSite
             services.AddSignalR(options =>
             {
                 //options.KeepAliveInterval = TimeSpan.FromSeconds(1);
-            });
+            }).AddMessagePackProtocol();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
