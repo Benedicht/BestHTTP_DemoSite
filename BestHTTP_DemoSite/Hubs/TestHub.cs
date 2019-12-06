@@ -22,13 +22,13 @@ namespace Hubs
 
     public class TestHub : Hub
     {
-        public override async Task OnConnectedAsync()
-        {
-            await Clients.All.SendAsync("Send", $"{Context.ConnectionId} joined");
-
-            await Clients.Client(Context.ConnectionId).SendAsync("Person", new Person { Name = "Person 007", Age = 35 });
-            await Clients.Client(Context.ConnectionId).SendAsync("TwoPersons", new Person { Name = "Person 008", Age = 36 }, new Person { Name = "Person 009", Age = 37 });
-        }
+        //public override async Task OnConnectedAsync()
+        //{
+        //    await Clients.All.SendAsync("Send", $"{Context.ConnectionId} joined");
+        //
+        //    await Clients.Client(Context.ConnectionId).SendAsync("Person", new Person { Name = "Person 007", Age = 35 });
+        //    await Clients.Client(Context.ConnectionId).SendAsync("TwoPersons", new Person { Name = "Person 008", Age = 36 }, new Person { Name = "Person 009", Age = 37 });
+        //}
 
         public override async Task OnDisconnectedAsync(Exception ex)
         {
@@ -94,12 +94,15 @@ namespace Hubs
             throw new Exception("It didn't work!");
         }
 
-        public IEnumerable<int> Batched(int count)
+        public int[] Batched(int count)
         {
+            int[] result = new int[count];
             for (var i = 0; i < count; i++)
             {
-                yield return i;
+                result[i] = i * i;
             }
+
+            return result;
         }
 
         public ChannelReader<int> ObservableCounter(int count, int delay)

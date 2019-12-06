@@ -194,7 +194,7 @@ namespace BestHTTP_DemoSite
                 {
                     await context.Response.WriteAsync(JsonConvert.SerializeObject(new
                     {
-                        url = $"{context.Request.Scheme}://{context.Request.Host}/HubWithAuthorization",
+                        url = $"{context.Request.Scheme}://{context.Request.Host}/HubWithAuthorization?testkey1=testvalue1&testkey2=testvalue2",
                         accessToken = GenerateJwtToken()
                     }));
                 }
@@ -220,7 +220,7 @@ namespace BestHTTP_DemoSite
                     await context.Response.WriteAsync(JsonConvert.SerializeObject(new
                     {
                         //url = $"{context.Request.Scheme}://{context.Request.Host}/{path}"
-                        url = $"/{path}"
+                        url = $"/{path}?testkey1=testvalue1&testkey2=testvalue2"
                     }));
                 } else if (context.Request.Path.ToString().Equals("/sse"))
                 {
