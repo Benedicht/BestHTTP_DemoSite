@@ -179,6 +179,9 @@ namespace BestHTTP_DemoSite
                 {
                     content.Context.Response.Headers["Content-Encoding"] = "gzip";
                 }
+
+                const int durationInSeconds = 60 * 60 * 24;
+                content.Context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.CacheControl] = "public,max-age=" + durationInSeconds;
             };
 
             app.UseStaticFiles(option);
@@ -219,8 +222,8 @@ namespace BestHTTP_DemoSite
 
                     await context.Response.WriteAsync(JsonConvert.SerializeObject(new
                     {
-                        //url = $"{context.Request.Scheme}://{context.Request.Host}/{path}"
-                        url = $"/{path}?testkey1=testvalue1&testkey2=testvalue2"
+                        url = $"{context.Request.Scheme}://{context.Request.Host}/{path}"
+                        //url = $"/{path}?testkey1=testvalue1&testkey2=testvalue2"
                     }));
                 } else if (context.Request.Path.ToString().Equals("/sse"))
                 {

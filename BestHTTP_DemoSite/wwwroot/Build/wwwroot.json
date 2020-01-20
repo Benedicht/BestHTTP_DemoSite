@@ -1,6 +1,6 @@
 {
 "companyName": "DefaultCompany",
-"productName": "WWW_Test_46",
+"productName": "WWW_Pro_35",
 "productVersion": "1.0",
 "dataUrl": "wwwroot.data.unityweb",
 "wasmCodeUrl": "wwwroot.wasm.code.unityweb",
@@ -9,8 +9,7 @@
 "webglContextAttributes": {"preserveDrawingBuffer": false},
 "splashScreenStyle": "Dark",
 "backgroundColor": "#231F20",
-"cacheControl": {"default": "must-revalidate"},
 "developmentBuild": false,
 "multithreading": false,
-"unityVersion": "2019.3.0f1"
+"unityVersion": "2019.3.0f5"
 }

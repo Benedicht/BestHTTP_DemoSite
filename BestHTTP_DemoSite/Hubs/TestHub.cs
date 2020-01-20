@@ -22,13 +22,13 @@ namespace Hubs
 
     public class TestHub : Hub
     {
-        //public override async Task OnConnectedAsync()
-        //{
-        //    await Clients.All.SendAsync("Send", $"{Context.ConnectionId} joined");
-        //
-        //    await Clients.Client(Context.ConnectionId).SendAsync("Person", new Person { Name = "Person 007", Age = 35 });
-        //    await Clients.Client(Context.ConnectionId).SendAsync("TwoPersons", new Person { Name = "Person 008", Age = 36 }, new Person { Name = "Person 009", Age = 37 });
-        //}
+        public override async Task OnConnectedAsync()
+        {
+            await Clients.All.SendAsync("Send", $"{Context.ConnectionId} joined");
+        
+            await Clients.Client(Context.ConnectionId).SendAsync("Person", new Person { Name = "Person 007", Age = 35 });
+            await Clients.Client(Context.ConnectionId).SendAsync("TwoPersons", new Person { Name = "Person 008", Age = 36 }, new Person { Name = "Person 009", Age = 37 });
+        }
 
         public override async Task OnDisconnectedAsync(Exception ex)
         {
