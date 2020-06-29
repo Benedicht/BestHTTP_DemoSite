@@ -235,9 +235,9 @@ namespace BestHTTP_DemoSite
                     for (var i = 0; true; ++i)
                     {
                         await response.WriteAsync(": this is a comment!\r\r");
-                        //await response.WriteAsync("event: datetime\r");
-                        //await response.WriteAsync($"data: {{\"eventid\": {i}, \"datetime\": \"{DateTime.Now}\"}}\r\r");
-                        //await response.WriteAsync("data: Message from the server without an event.\r\r");
+                        await response.WriteAsync("event: datetime\r");
+                        await response.WriteAsync($"data: {{\"eventid\": {i}, \"datetime\": \"{DateTime.Now}\"}}\r\r");
+                        await response.WriteAsync("data: Message from the server without an event.\r\r");
 
                         await response.Body.FlushAsync();
                         await Task.Delay(5 * 1000);
