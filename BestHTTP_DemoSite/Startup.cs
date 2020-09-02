@@ -19,6 +19,8 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using System.Net.WebSockets;
+using System.Threading;
 
 namespace BestHTTP_DemoSite
 {
@@ -128,14 +130,14 @@ namespace BestHTTP_DemoSite
             //app.UseCors("Everything");
             app.UseCors(builder =>
             {
-                builder.WithOrigins("https://localhost:44364", "https://besthttpdemosite.azurewebsites.net")
+                builder.WithOrigins("https://localhost:44364", "https://besthttpdemosite.azurewebsites.net", "https://besthttpdemo.azureedge.net")
                        .AllowAnyMethod()
                        .AllowAnyHeader()
                        .AllowCredentials()
                        .WithHeaders("Authorization");
             });
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseCookiePolicy();
 
             app.UseRouting();
@@ -186,6 +188,10 @@ namespace BestHTTP_DemoSite
 
             app.UseStaticFiles(option);
 
+            WebSocketOptions options = new WebSocketOptions();
+            options.ReceiveBufferSize = UInt16.MaxValue;
+            app.UseWebSockets(options);
+
             app.Run(async (context) =>
             {
                 if (context.Request.Path.StartsWithSegments("/generateJwtToken"))
@@ -225,7 +231,8 @@ namespace BestHTTP_DemoSite
                         url = $"{context.Request.Scheme}://{context.Request.Host}/{path}"
                         //url = $"/{path}?testkey1=testvalue1&testkey2=testvalue2"
                     }));
-                } else if (context.Request.Path.ToString().Equals("/sse"))
+                } 
+                else if (context.Request.Path.ToString().Equals("/sse"))
                 {
                     // https://stackoverflow.com/questions/36227565/aspnet-core-server-sent-events-response-flush
 
@@ -243,7 +250,36 @@ namespace BestHTTP_DemoSite
                         await Task.Delay(5 * 1000);
                     }
                 }
+                else if (context.Request.Path == "/ws")
+                {
+                    if (context.WebSockets.IsWebSocketRequest)
+                    {
+                        WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                        await WebSocketEcho(context, webSocket);
+                    }
+                    else
+                    {
+                        context.Response.StatusCode = 400;
+                    }
+                }
             });
+        }
+
+        private async Task WebSocketEcho(HttpContext context, WebSocket webSocket)
+        {
+            var buffer = new byte[UInt16.MaxValue * 5];
+
+            WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            while (!result.CloseStatus.HasValue)
+            {
+                //System.Diagnostics.Debug.WriteLine(string.Format("Received - type: {0}, final: {1}, count: {2}", result.MessageType, result.EndOfMessage, result.Count));
+                Console.WriteLine(string.Format("Received - type: {0}, final: {1}, count: {2}", result.MessageType, result.EndOfMessage, result.Count));
+
+                await webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count), result.MessageType, result.EndOfMessage, CancellationToken.None);
+
+                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            }
+            await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
         }
 
         private string GenerateJwtToken()
