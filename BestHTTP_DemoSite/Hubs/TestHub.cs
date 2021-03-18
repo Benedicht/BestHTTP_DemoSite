@@ -2,6 +2,7 @@
 using SignalRSamples;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Channels;
@@ -9,10 +10,20 @@ using System.Threading.Tasks;
 
 namespace Hubs
 {
+    public enum PersonStates
+    {
+        Unknown,
+        Joined
+    }
+
     public class Person
     {
+        public UnityEngine.Vector3[] Positions { get; set; }
         public string Name { get; set; }
         public long Age { get; set; }
+        public DateTime Joined { get; set; }
+        public PersonStates State { get; set; }
+        public List<Person> Friends { get; set; }
 
         public override string ToString()
         {
@@ -20,19 +31,69 @@ namespace Hubs
         }
     }
 
+    public enum MyEnum : int
+    {
+        None,
+        One,
+        Two
+    }
+
+    public sealed class Metadata
+    {
+        public string strData;
+        public int intData;
+        public MyEnum myEnum;
+    }
+
     public class TestHub : Hub
     {
+        Random rand = new Random();
+        PersonStates[] states = null;
+
+        private Person CreatePerson(bool createFriends = true)
+        {
+            if (states == null)
+                states = Enum.GetValues<PersonStates>();
+
+            var person = new Person
+            {
+                Name = "Name_" + rand.Next(),
+                Age = rand.Next(20, 99),
+                Joined = DateTime.Now,
+                State = states[rand.Next(0, states.Length)],
+                Positions = new UnityEngine.Vector3[] {
+                    new UnityEngine.Vector3(rand.Next(0, 100), rand.Next(0, 100), rand.Next(0, 100))
+                }
+            };
+
+            if (createFriends && rand.Next(0, 100) < 50)
+            {
+                person.Friends = new List<Person>();
+            
+                int count = rand.Next(1, 5);
+                for (int i = 0; i < count; ++i)
+                    person.Friends.Add(CreatePerson(false));
+            }
+
+            return person;
+        }
+
         public override async Task OnConnectedAsync()
         {
             await Clients.All.SendAsync("Send", $"{Context.ConnectionId} joined");
-        
-            await Clients.Client(Context.ConnectionId).SendAsync("Person", new Person { Name = "Person 007", Age = 35 });
-            await Clients.Client(Context.ConnectionId).SendAsync("TwoPersons", new Person { Name = "Person 008", Age = 36 }, new Person { Name = "Person 009", Age = 37 });
+            
+            await Clients.Client(Context.ConnectionId).SendAsync("Person", CreatePerson());
+            await Clients.Client(Context.ConnectionId).SendAsync("TwoPersons", CreatePerson(), CreatePerson());
         }
 
         public override async Task OnDisconnectedAsync(Exception ex)
         {
             await Clients.Others.SendAsync("Send", $"{Context.ConnectionId} left");
+        }
+
+        public void SendMetadata(Metadata metadata)
+        {
+            Debug.WriteLine("SendMetadata");
         }
 
         public Task Send(string message)
@@ -81,7 +142,11 @@ namespace Hubs
 
         public Person GetPerson(string name, int age)
         {
-            return new Person { Name = name, Age = age };
+            var person = CreatePerson();
+            person.Name = name;
+            person.Age = age;
+
+            return person;
         }
 
         public int Add(int x, int y)
@@ -150,12 +215,12 @@ namespace Hubs
                 for (var i = 0; i < count; i++)
                 {
 #pragma warning disable HAA0202 // Value type to reference type conversion allocation for string concatenation
-                    await channel.Writer.WriteAsync(new Person { Name = "Name_" + rand.Next(), Age = rand.Next(20, 99) });
+                    await channel.Writer.WriteAsync(CreatePerson());
 #pragma warning restore HAA0202 // Value type to reference type conversion allocation for string concatenation
                     await Task.Delay(delay);
                 }
 
-                await Clients.Client(Context.ConnectionId).SendAsync("Person", new Person { Name = "Person 000", Age = 0 });
+                await Clients.Client(Context.ConnectionId).SendAsync("Person", CreatePerson());
 
                 channel.Writer.TryComplete();
             });

@@ -109,7 +109,10 @@ namespace BestHTTP_DemoSite
             services.AddSignalR(options =>
             {
                 //options.KeepAliveInterval = TimeSpan.FromSeconds(1);
-            }).AddMessagePackProtocol();
+            }).AddMessagePackProtocol(options =>
+            {
+                //options.SerializerOptions.
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -189,7 +192,6 @@ namespace BestHTTP_DemoSite
             app.UseStaticFiles(option);
 
             WebSocketOptions options = new WebSocketOptions();
-            options.ReceiveBufferSize = UInt16.MaxValue;
             app.UseWebSockets(options);
 
             app.Run(async (context) =>
