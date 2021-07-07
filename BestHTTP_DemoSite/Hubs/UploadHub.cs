@@ -18,34 +18,6 @@ namespace Hubs
 
     public class UploadHub : Hub
     {
-        public enum MyEnum
-        {
-            None,
-            One,
-            Two
-        }
-
-        public sealed class Metadata
-        {
-            public string strData;
-            public int intData;
-            public MyEnum myEnum;
-        }
-
-        public async Task<int> MixedArgsTest(ChannelReader<Person> source, int intParam, string stringParam, Metadata metadata)
-        {
-            int count = 0;
-            while (await source.WaitToReadAsync())
-            {
-                while (source.TryRead(out var item))
-                {
-                    count++;
-                }
-            }
-
-            return count;
-        }
-
         public ChannelReader<Person> PersonEcho(ChannelReader<Person> source)
         {
             var output = Channel.CreateUnbounded<Person>();

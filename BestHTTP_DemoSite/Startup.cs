@@ -108,6 +108,7 @@ namespace BestHTTP_DemoSite
 
             services.AddSignalR(options =>
             {
+                options.EnableDetailedErrors = true;
                 //options.KeepAliveInterval = TimeSpan.FromSeconds(1);
             }).AddMessagePackProtocol(options =>
             {
@@ -133,7 +134,7 @@ namespace BestHTTP_DemoSite
             //app.UseCors("Everything");
             app.UseCors(builder =>
             {
-                builder.WithOrigins("https://localhost:44364", "https://besthttpdemosite.azurewebsites.net", "https://besthttpdemo.azureedge.net")
+                builder.WithOrigins("https://localhost:44364", "https://besthttpdemosite.azurewebsites.net", "https://besthttpdemo.azureedge.net", "https://besthttpwebgldemo.azurewebsites.net")
                        .AllowAnyMethod()
                        .AllowAnyHeader()
                        .AllowCredentials()
