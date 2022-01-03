@@ -276,7 +276,7 @@ namespace BestHTTP_DemoSite
             while (!result.CloseStatus.HasValue)
             {
                 //System.Diagnostics.Debug.WriteLine(string.Format("Received - type: {0}, final: {1}, count: {2}", result.MessageType, result.EndOfMessage, result.Count));
-                Console.WriteLine(string.Format("Received - type: {0}, final: {1}, count: {2}", result.MessageType, result.EndOfMessage, result.Count));
+                //Console.WriteLine(string.Format("Received - type: {0}, final: {1}, count: {2}", result.MessageType, result.EndOfMessage, result.Count));
 
                 await webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count), result.MessageType, result.EndOfMessage, CancellationToken.None);
 
