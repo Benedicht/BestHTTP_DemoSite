@@ -134,7 +134,7 @@ namespace BestHTTP_DemoSite
             //app.UseCors("Everything");
             app.UseCors(builder =>
             {
-                builder.WithOrigins("https://localhost:44364", "https://besthttpdemosite.azurewebsites.net", "https://besthttpdemo.azureedge.net", "https://besthttpwebgldemo.azurewebsites.net")
+                builder.WithOrigins("https://localhost:44364", "https://besthttpdemosite.azurewebsites.net", "https://besthttpdemo.azureedge.net", "https://besthttpwebgldemo.azurewebsites.net", "https://benedicht.github.io")
                        .AllowAnyMethod()
                        .AllowAnyHeader()
                        .AllowCredentials()
