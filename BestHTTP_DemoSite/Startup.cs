@@ -1,32 +1,31 @@
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.IO;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
+
 using Newtonsoft.Json;
+
+using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.IO;
+using System.IO.Pipelines;
 using System.Net.WebSockets;
+using System.Security.Claims;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace BestHTTP_DemoSite
 {
     public class Startup
     {
-        private readonly SymmetricSecurityKey SecurityKey = new SymmetricSecurityKey(System.Text.Encoding.ASCII.GetBytes("Super secret security key!"));
+        private readonly SymmetricSecurityKey SecurityKey = new SymmetricSecurityKey(System.Text.Encoding.ASCII.GetBytes("Super secret and very, very long security key!"));
         private readonly JwtSecurityTokenHandler JwtTokenHandler = new JwtSecurityTokenHandler();
 
         public Startup(IConfiguration configuration)
@@ -108,12 +107,17 @@ namespace BestHTTP_DemoSite
 
             services.AddSignalR(options =>
             {
+                options.MaximumReceiveMessageSize = 1024 * 1024 * 1024;
+                
                 options.EnableDetailedErrors = true;
-                //options.KeepAliveInterval = TimeSpan.FromSeconds(1);
                 options.MaximumParallelInvocationsPerClient = 10;
             }).AddMessagePackProtocol(options =>
             {
                 //options.SerializerOptions.
+            });
+
+            services.AddControllers(op =>
+            {
             });
         }
 
@@ -135,7 +139,9 @@ namespace BestHTTP_DemoSite
             //app.UseCors("Everything");
             app.UseCors(builder =>
             {
-                builder.WithOrigins("https://localhost:4000", "https://besthttpdemosite.azurewebsites.net", "https://besthttpdemo.azureedge.net", "https://besthttpwebgldemo.azurewebsites.net", "https://benedicht.github.io")
+                builder
+                       //.WithOrigins("https://localhost:4000", "https://besthttpdemosite.azurewebsites.net", "https://besthttpdemo.azureedge.net", "https://besthttpwebgldemo.azurewebsites.net", "https://benedicht.github.io")
+                       .SetIsOriginAllowed(origin => true)
                        .AllowAnyMethod()
                        .AllowAnyHeader()
                        .AllowCredentials()
@@ -151,9 +157,20 @@ namespace BestHTTP_DemoSite
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<Hubs.TestHub>("/TestHub");
-                endpoints.MapHub<Hubs.HubWithAuthorization>("/HubWithAuthorization");
-                endpoints.MapHub<Hubs.UploadHub>("/uploading");
+                endpoints.MapHub<Hubs.TestHub>("/TestHub", options =>
+                {
+                    options.AllowStatefulReconnects = true;
+                    options.ApplicationMaxBufferSize = 1024 * 1024 * 1024;
+                    options.TransportMaxBufferSize = 1024 * 1024 * 1024;
+                });
+                endpoints.MapHub<Hubs.HubWithAuthorization>("/HubWithAuthorization", options =>
+                {
+                    options.AllowStatefulReconnects = true;
+                });
+                endpoints.MapHub<Hubs.UploadHub>("/uploading", options =>
+                {
+                    options.AllowStatefulReconnects = true;
+                });
             });
 
             //app.UseSignalR(routes =>
@@ -241,16 +258,19 @@ namespace BestHTTP_DemoSite
                     // https://stackoverflow.com/questions/36227565/aspnet-core-server-sent-events-response-flush
 
                     var response = context.Response;
-                    response.Headers.Add("Content-Type", "text/event-stream");
+                    response.Headers.Add("Content-Type", "text/event-stream;charset=UTF-8");
 
                     for (var i = 0; true; ++i)
                     {
-                        await response.WriteAsync(": this is a comment!\r\r");
-                        await response.WriteAsync("event: datetime\r");
-                        await response.WriteAsync($"data: {{\"eventid\": {i}, \"datetime\": \"{DateTime.Now}\"}}\r\r");
-                        await response.WriteAsync("data: Message from the server without an event.\r\r");
+                        //await response.WriteAsync(": this is a comment!\r\r");
+                        await response.WriteAsync("event: datetime\r\n");
+                        await response.WriteAsync($"data: {{\"eventid\": {i}, \"datetime\": \"{DateTime.Now}\"}}\r\n");
+                        //await response.WriteAsync("data: Message from the server without an event.\r");
 
                         await response.Body.FlushAsync();
+                        await response.WriteAsync("\r\n");
+                        await response.Body.FlushAsync();
+
                         await Task.Delay(5 * 1000);
                     }
                 }
@@ -258,7 +278,9 @@ namespace BestHTTP_DemoSite
                 {
                     if (context.WebSockets.IsWebSocketRequest)
                     {
-                        WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                        WebSocketAcceptContext wsContext = new WebSocketAcceptContext();
+                        wsContext.DangerousEnableCompression = true;
+                        WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync(wsContext);
                         await WebSocketEcho(context, webSocket);
                     }
                     else
